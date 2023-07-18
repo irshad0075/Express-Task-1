@@ -1,9 +1,13 @@
 const bcrypt = require("bcrypt");
 const User = require("./UserSchema");
+const { connect } = require("mongoose");
 
 const signup = async (req, res) => {
   try {
     const { email, username, password } = req.body;
+
+    await connect(process.env.MONGO_URI);
+    console.log("Batabase is Connected Successfully");
 
     // Check if the email or username is already taken
     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
