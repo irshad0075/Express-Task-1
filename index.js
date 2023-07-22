@@ -25,7 +25,7 @@ mongoose.connection.once("open", () => {
 app.use("/api/user", userRouter);
 
 // Start the server
-const SERVER_PORT = process.env.SERVER_PORT || 3000;
+const SERVER_PORT = process.env.SERVER_PORT;
 app.listen(SERVER_PORT, () => {
   console.log(`Server is running on SERVER_PORT ${SERVER_PORT}`);
 });
