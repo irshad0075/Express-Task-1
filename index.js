@@ -18,7 +18,7 @@ mongoose.connection.on("error", (err) => {
 
 // Handle successful connection
 mongoose.connection.once("open", () => {
-  console.log("DB Connected");
+  console.log("DB Connected Successfully");
 });
 
 // Use the userRouter for all user-related routes

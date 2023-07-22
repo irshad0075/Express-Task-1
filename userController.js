@@ -1,52 +1,15 @@
-// const bcrypt = require("bcrypt");
-// const User = require("./UserSchema");
-// const { connect } = require("mongoose");
-
-// const signup = async (req, res) => {
-//   try {
-//     const { email, username, password } = req.body;
-
-//     await connect(process.env.MONGO_URI);
-//     console.log("Batabase is Connected Successfully");
-
-//     // Check if the email or username is already taken
-//     const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-//     if (existingUser) {
-//       return res
-//         .status(400)
-//         .json({ error: "Email or username already exists" });
-//     }
-
-//     // Hash the password using bcrypt
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Create a new user in the database
-//     const newUser = new User({ email, username, password: hashedPassword });
-//     await newUser.save();
-
-//     return res.status(201).json({ message: "User registered successfully" });
-//   } catch (error) {
-//     console.error("Error during signup:", error);
-//     return res.status(500).json({ error: "Internal server error" });
-//   }
-// };
-
-// module.exports = {
-//   signup,
-// };
-
-
-
-const bcrypt = require("bcrypt");
+const { hash, compare } = require("bcryptjs");
 const User = require("./UserSchema");
-const { connect } = require("mongoose");
+const jwt = require("jsonwebtoken");
+const mongoose = require("mongoose");
 
+require("dotenv").config();
 
 // User sign-up controller
 async function signup(req, res) {
-  try {
-    const { username, password } = req.body;
+  const { username, password, email } = req.body;
 
+  try {
     // Check if the user already exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -54,18 +17,22 @@ async function signup(req, res) {
     }
 
     // Hash the password before saving to the database
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hash(password, 16);
 
-    // Create a new user document
-    const newUser = new User({
-      username,
-      password: hashedPassword,
-    });
-
-    // Save the user to the database
+    // Create a new user document and save it to the database
+    const newUser = new User({ username, password: hashedPassword, email });
     await newUser.save();
 
-    return res.status(201).json({ message: "User created successfully" });
+    // Generate a JWT token
+    const token = jwt.sign({
+      id: newUser._id,
+      username: newUser.username,
+      email: newUser.email,
+    });
+
+    return res
+      .status(201)
+      .json({ message: "User created successfully", token });
   } catch (error) {
     console.error("Error during user sign-up:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -74,31 +41,71 @@ async function signup(req, res) {
 
 // User login controller
 async function login(req, res) {
-  try {
-    const { username, password } = req.body;
+  const { username, password } = req.body;
 
+  try {
     // Find the user in the database
     const user = await User.findOne({ username });
-    if (!user) {
+
+    // Check if the user exists and compare the password
+    if (!user || !(await compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Compare the provided password with the hashed password in the database
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    // Generate a JWT token
+    const token = jwt.sign({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    });
 
-    // TODO: Create a token and send it in the response for user authentication (using JWT or any other authentication mechanism)
-
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     console.error("Error during user login:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
 
-module.exports = {
-  signup,
-  login,
+// Get all users controller
+async function getallusers(req, res) {
+  try {
+    const users = await User.find();
+    res.json({ users });
+  } catch (error) {
+    console.error("Error fetching all users:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+// Get user by email controller
+async function getUserByEmail(req, res) {
+  const { email } = req.params;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ user });
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+const userbyEmail = async (req, res) => {
+  const { email } = req.query;
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    const Users = await User.findOne({ email: email });
+    res.json({
+      Users: Users,
+    });
+  } catch (error) {
+    res.json({
+      message: error.message,
+    });
+  }
 };
+module.exports = { signup, login, getallusers, getUserByEmail, userbyEmail };
