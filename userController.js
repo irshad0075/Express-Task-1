@@ -5,6 +5,12 @@ const mongoose = require("mongoose");
 
 require("dotenv").config();
 
+// Connect to the database
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("DB Connected"))
+  .catch((err) => console.error("Error connecting to the database:", err));
+
 // User sign-up controller
 async function signup(req, res) {
   const { username, password, email } = req.body;
@@ -17,18 +23,21 @@ async function signup(req, res) {
     }
 
     // Hash the password before saving to the database
-    const hashedPassword = await hash(password, 16);
+    const hashedPassword = await hash(password, 10);
 
     // Create a new user document and save it to the database
     const newUser = new User({ username, password: hashedPassword, email });
     await newUser.save();
 
     // Generate a JWT token
-    const token = jwt.sign({
-      id: newUser._id,
-      username: newUser.username,
-      email: newUser.email,
-    });
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+      },
+      process.env.JWT_SECRET
+    );
 
     return res
       .status(201)
@@ -97,7 +106,6 @@ const userbyEmail = async (req, res) => {
   const { email } = req.query;
 
   try {
-    await mongoose.connect(process.env.MONGO_URI);
     const Users = await User.findOne({ email: email });
     res.json({
       Users: Users,
@@ -108,4 +116,5 @@ const userbyEmail = async (req, res) => {
     });
   }
 };
+
 module.exports = { signup, login, getallusers, getUserByEmail, userbyEmail };
