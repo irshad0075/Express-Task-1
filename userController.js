@@ -29,7 +29,7 @@ async function signup(req, res) {
     const newUser = new User({ username, password: hashedPassword, email });
     await newUser.save();
 
-    // Generate a JWT token
+    // Generate a JWT token with the JWT_SECRET
     const token = jwt.sign(
       {
         id: newUser._id,
@@ -61,12 +61,15 @@ async function login(req, res) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate a JWT token
-    const token = jwt.sign({
-      id: user._id,
-      username: user.username,
-      email: user.email,
-    });
+    // Generate a JWT token with the JWT_SECRET
+    const token = jwt.sign(
+      {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+      },
+      process.env.JWT_SECRET
+    );
 
     return res.status(200).json({ message: "Login successful", token });
   } catch (error) {
