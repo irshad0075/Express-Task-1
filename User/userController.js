@@ -9,10 +9,13 @@ require("dotenv").config();
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("DB Connected"))
-  .catch((err) => console.error("Error connecting to the database:", err));
+  .catch((err) => {
+    console.error("Error connecting to the database:", err);
+    process.exit(1); // Exit the process if database connection fails
+  });
 
 // User sign-up controller
-async function signup(req, res) {
+const signup = async (req, res) => {
   const { username, password, email } = req.body;
 
   try {
@@ -46,10 +49,10 @@ async function signup(req, res) {
     console.error("Error during user sign-up:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 // User login controller
-async function login(req, res) {
+const login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
@@ -76,10 +79,10 @@ async function login(req, res) {
     console.error("Error during user login:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 // Get all users controller
-async function getallusers(req, res) {
+const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
     res.json({ users });
@@ -87,10 +90,10 @@ async function getallusers(req, res) {
     console.error("Error fetching all users:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 // Get user by email controller
-async function getUserByEmail(req, res) {
+const getUserByEmail = async (req, res) => {
   const { email } = req.params;
 
   try {
@@ -103,21 +106,22 @@ async function getUserByEmail(req, res) {
     console.error("Error fetching user by email:", error);
     res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
+// Get user by email using query params controller
 const userbyEmail = async (req, res) => {
   const { email } = req.query;
 
   try {
-    const Users = await User.findOne({ email: email });
-    res.json({
-      Users: Users,
-    });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({ user });
   } catch (error) {
-    res.json({
-      message: error.message,
-    });
+    console.error("Error fetching user by email:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
-module.exports = { signup, login, getallusers, getUserByEmail, userbyEmail };
+module.exports = { signup, login, getAllUsers, getUserByEmail, userbyEmail };

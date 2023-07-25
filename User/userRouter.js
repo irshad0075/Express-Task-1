@@ -9,12 +9,12 @@ router.post("/signup", userController.signup);
 router.post("/login", userController.login);
 
 // Get all users
-router.get("/getallusers", userController.getallusers);
+router.get("/getallusers", userController.getAllUsers);
 
 // Get user by email
 router.get("/getuserbyemail/:email", userController.getUserByEmail);
 
 // Get user by email route using query params
-router.get("/getuserbyEmail", userController.userbyEmail);
+router.get("/userbyEmail", userController.userbyEmail);
 
 module.exports = router;
