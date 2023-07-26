@@ -1,16 +1,14 @@
 const axios = require("axios");
-const Product = require("./ProductModel");
 const Brand = require("./BrandModel");
 const Category = require("./CategoryModel");
 
-// Controller to get all products from the database
+// Controller to get all products from the dummyjson api
 const getProducts = async (req, res) => {
   try {
-    // Fetch all products from the database
-    // it fetches additional information from other collections
-    //(e.g., category details, brand details) and adds that information to the product documents.
-    const products = await Product.find({}).populate("category brand").exec();
-    //The .exec() method is called to execute the database query and retrieve the results.
+    const response = await axios.get("https://dummyjson.com/products");
+
+    // Get the products data from the response
+    const products = response.data;
 
     res.json(products);
   } catch (error) {
@@ -64,4 +62,39 @@ const addBrand = async (req, res) => {
   }
 };
 
-module.exports = { getProducts, addCategory, addBrand };
+// Get all categories controller
+const getAllCategory = async (req, res) => {
+  try {
+    const categories = await Category.find();
+    res.json({ categories });
+  } catch (error) {
+    console.error("Error fetching all categories:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+// Controller to get a category by name
+const getCategoryByName = async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    // Find the category by name in the database
+    const category = await Category.findOne({ name });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found." });
+    }
+
+    res.json({ category });
+  } catch (error) {
+    console.error("Error fetching category by name:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+module.exports = {
+  getProducts,
+  addCategory,
+  addBrand,
+  getAllCategory,
+  getCategoryByName,
+};
