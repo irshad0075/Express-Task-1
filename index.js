@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const userRouter = require("./User/userRouter.js");
+const productRouter = require("./Products/productRouter.js"); // Add the productRouter
 
 dotenv.config();
 
@@ -23,6 +24,9 @@ mongoose.connection.once("open", () => {
 
 // Use the userRouter for all user-related routes
 app.use("/api/user", userRouter);
+
+// Use the productRouter for all product-related routes
+app.use("/api/products", productRouter);
 
 // Start the server
 const SERVER_PORT = process.env.SERVER_PORT;
