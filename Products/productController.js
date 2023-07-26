@@ -7,12 +7,13 @@ const Category = require("./CategoryModel");
 const getProducts = async (req, res) => {
   try {
     // Fetch all products from the database
+    // it fetches additional information from other collections
+    //(e.g., category details, brand details) and adds that information to the product documents.
     const products = await Product.find({}).populate("category brand").exec();
+    //The .exec() method is called to execute the database query and retrieve the results.
 
-    // Respond with the list of products
     res.json(products);
   } catch (error) {
-    // Handle errors if fetching products fails
     console.error("Error fetching products:", error);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -26,7 +27,6 @@ const addCategory = async (req, res) => {
     // Check if the category already exists in the database
     const existingCategory = await Category.findOne({ name });
     if (existingCategory) {
-      // If the category exists, return an error message
       return res.status(400).json({ message: "Category already exists." });
     }
 
