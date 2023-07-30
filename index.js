@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const userRouter = require("./User/userRouter.js");
-const productRouter = require("./Products/productRouter.js"); // Add the productRouter
+const productRouter = require("./Products/productRouter.js");
 
 dotenv.config();
 
