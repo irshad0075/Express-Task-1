@@ -9,7 +9,6 @@ const getProducts = async (req, res) => {
 
     // Get the products data from the response
     const products = response.data;
-
     res.json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
@@ -31,7 +30,6 @@ const addCategory = async (req, res) => {
     // Create a new category
     const newCategory = new Category({ name });
     await newCategory.save();
-
     res.json({ message: "Category added successfully." });
   } catch (error) {
     console.error("Error adding category:", error);
